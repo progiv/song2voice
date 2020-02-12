@@ -6,6 +6,8 @@ env/
 *.mp3
 *.wav
 
+.DS_Store
+
 # Created by https://www.gitignore.io/api/macos,django
 # Edit at https://www.gitignore.io/?templates=macos,django
 
