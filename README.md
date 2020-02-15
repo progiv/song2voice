@@ -25,3 +25,13 @@ Now we are ready to run the server:
 ```
 python manage.py runserver
 ```
+
+## Running locally in docker container
+*Note: it is an alternative way of doing steps from above.*
+
+1. Install docker using [official guide](https://docs.docker.com/get-docker/)
+1. Build the image with name song2voice: `docker image build -t song2voice .`
+1. Run the container interactively: `docker run --rm -it -p 8000:8000 song2voice`
+1. The server is now accessible at <localhost:8000>
+
+Tip: Don't forget to rebuild image to see updates.
