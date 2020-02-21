@@ -22,7 +22,7 @@ def init_model():
 
 def process_file(input_file_url, processed_song_folder_url):
     init_model()
-    global_model.predict(BASE_DIR + input_file_url, processed_song_folder_url)
+    global_model.predict(f'{BASE_DIR}{input_file_url}', processed_song_folder_url)
 
 def get_md5(file):
     hash_md5 = hashlib.md5()
@@ -55,11 +55,11 @@ def upload(request):
     if is_used_hash(md5_of_song):
         song_url =  ProcessedSong.objects.filter(pk=md5_of_song).first().vocal_url
         return HttpResponse(song_url)
-    input_song_url = save_file_in_media(md5_of_song + ".wav", input_song)
-    processed_url = MEDIA_ROOT + "/"
+    input_song_url = save_file_in_media(f'{md5_of_song}.wav', input_song)
+    processed_url = f'{MEDIA_ROOT}/'
     process_file(input_song_url, processed_url)
-    processed_vocal_url = '/media/' + md5_of_song + '/vocals.wav'
-    processed_accompaniment_url = '/media/' + md5_of_song + '/accompaniment.wav'
+    processed_vocal_url = f'/media/{md5_of_song}/vocals.wav'
+    processed_accompaniment_url = f'/media/{md5_of_song}/accompaniment.wav' 
     _ = ProcessedSong.objects.create(hash_code=md5_of_song,
                                      input_url=input_song_url,
                                      vocal_url=processed_vocal_url,
