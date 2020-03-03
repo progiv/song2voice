@@ -8,6 +8,7 @@ import hashlib
 from spleeter_model.inference import Spleeter
 from .models import ProcessedSong
 import os
+import filetype
 from get_voice_server.settings import BASE_DIR, MEDIA_ROOT
 
 
@@ -30,8 +31,10 @@ def get_md5(file):
         hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
-def is_wav_file(file):
-    return file.name.endswith('.wav')
+def is_wav_mp3_file(file):
+    buf = filetype.get_bytes(file)
+    kind = filetype.guess(buf)
+    return (kind is not None) and (kind.extension in ['mp3', 'wav'])
 
 def save_file_in_media(name, file):
     filename = fs.save(name, file)
@@ -49,7 +52,7 @@ def upload(request):
     if not is_good_request(request):
         return HttpResponseServerError('<h1>Incorrect request format</h1>')
     input_song = request.FILES['song']
-    if not is_wav_file(input_song):
+    if not is_wav_mp3_file(input_song):
         return HttpResponseServerError('<h1>Incorrect file format</h1>')
     md5_of_song = get_md5(input_song)
     if is_used_hash(md5_of_song):
@@ -64,6 +67,5 @@ def upload(request):
                                      input_url=input_song_url,
                                      vocal_url=processed_vocal_url,
                                      accompaniment_url=processed_accompaniment_url)
-    return HttpResponse(processed_vocal_url)
-        
+    return HttpResponse(processed_vocal_url)        
     
