@@ -26,12 +26,18 @@ Now we are ready to run the server:
 python manage.py runserver
 ```
 
-## Running locally in docker container
+## Running locally in docker container for debug
 *Note: it is an alternative way of doing steps from above.*
 
 1. Install docker using [official guide](https://docs.docker.com/get-docker/)
 1. Build the image with name song2voice: `docker image build -t song2voice .`
-1. Run the container interactively: `docker run --rm -it -p 8000:8000 song2voice`
-1. The server is now accessible at <localhost:8000>
+1. Run the container interactively: `docker run --rm -it -p 80:80 song2voice`
+1. The server is now accessible at <localhost:80>
 
-Tip: Don't forget to rebuild image to see updates.
+## Deploy to Remote server
+Prerequisites: it is expected that you already have setup keypair connection to your remote server on `<ROMITE IP>` with private key stored at `<PATH TO PRIVATRE SSH KEY>`.
+1. (Once)Setup docker environment on the remote machine. `docker-machine create --driver generic --generic-ip-address=<REMOTE IP> --generic-ssh-user=<REMOTE USERNAME> --generic-ssh-key <PATH TO PRIVATRE SSH KEY> s2v-ya`
+1. Configure docker to run commands on remote host `eval $(docker-machine env s2v-ya)`
+1. Build container as before. Notice: that it will be built on remote host using local source code.
+1. Run container in detached mode `docker run -dp 80:80 --name back song2voice`
+1. Unset environment variables that were set up in step 2 `eval $(docker-machine env -u)`
