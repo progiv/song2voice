@@ -2,6 +2,9 @@ django==2.2
 gunicorn==20.0.4
 django-cors-headers==3.2.1
 
+# postgres client
+psycopg2-binary==2.8.4
+
 # for file type checking
 filetype==1.0.5
 
