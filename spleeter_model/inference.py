@@ -1,5 +1,5 @@
 import os
-import shutil
+import tempfile
 from pydub import AudioSegment
 from spleeter.separator import Separator
 
@@ -38,35 +38,25 @@ class Spleeter:
             path_to_output (str): path to folder where to save file
         Returns:
             None
-        """     
+        """
         
-        path_to_sup_dir = os.path.join(path_to_output, self.sup_dir)
-        
-        if self.sup_dir not in os.listdir(path_to_output):
-            os.mkdir(path_to_sup_dir)
-        
-        try:
-            music_dir = os.path.splitext(os.path.basename(path_to_input))[0].replace("\\", "")
+        with tempfile.TemporaryDirectory() as path_to_sup_dir:
+            
+            music_dir = os.path.splitext(os.path.basename(path_to_input))[0]
 
             sound = AudioSegment.from_file(path_to_input)
-            
+
             n_parts = self._separate_audio(sound, path_to_sup_dir)
-            
+
             self._predict_audio_parts(n_parts, path_to_sup_dir, music_dir)
 
             path_to_music_dir = os.path.join(path_to_output, music_dir)
-            
+
             if music_dir not in os.listdir(path_to_output):
                 os.mkdir(path_to_music_dir)
 
             self._join_audio(n_parts, path_to_sup_dir, music_dir, path_to_music_dir)
-            
-        except Exception as ex:            
-            print("Something went wrong:(")
-            raise ex
-        
-        finally:
-            shutil.rmtree(path_to_sup_dir)
+
  
 
     def _separate_audio(self, sound, path_to_sup_dir):
