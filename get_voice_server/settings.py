@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ["SECRET_KEY"]
+SECRET_KEY = os.environ.get("SECRET_KEY", "Dummy SECRET_KEY don't forget to change it in env")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False") == "True"  # will set DEBUG to True only if we explicitly set it in env
@@ -81,18 +81,19 @@ WSGI_APPLICATION = 'get_voice_server.wsgi.application'
 DATABASES = {
     'main': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ['DB_HOST'],
+        'HOST': os.environ.get('DB_HOST', "localhost"),
         'PORT': os.environ.get('DB_PORT', 5432),
         'NAME': os.environ.get('DB_NAME', 'postgres'),
         'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ['DB_PASSWORD']
+        'PASSWORD': os.environ.get('DB_PASSWORD', "password")
     },
     'test': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-DATABASES['default'] = DATABASES[os.environ.get("DJANGO_DATABASE", "main")]
+database = os.environ.get("DJANGO_DATABASE", "test")
+DATABASES['default'] = DATABASES[database]
 
 
 # Password validation

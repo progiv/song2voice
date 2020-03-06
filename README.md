@@ -35,7 +35,7 @@ DJANGO_DATABASE=test python manage.py runserver
 1. The server is now accessible at <localhost:80>
 
 ## Deploy to Remote server
-Prerequisites: it is expected that you already have setup keypair connection to your remote server on `<ROMITE IP>` with private key stored at `<PATH TO PRIVATRE SSH KEY>`. `<PATH TO ENV FILE>` should contain secrets like `SECRET_KEY`, `DB_PASWORD` and `DB_HOST`
+Prerequisites: it is expected that you already have setup keypair connection to your remote server on `<ROMITE IP>` with private key stored at `<PATH TO PRIVATRE SSH KEY>`. `<PATH TO ENV FILE>` should contain secrets like `SECRET_KEY`, `DJANGO_DATABASE=main` `DB_PASWORD` and `DB_HOST`
 1. (Once)Setup docker environment on the remote machine. `docker-machine create --driver generic --generic-ip-address=<REMOTE IP> --generic-ssh-user=<REMOTE USERNAME> --generic-ssh-key <PATH TO PRIVATRE SSH KEY> s2v-ya`
 1. Configure docker to run commands on remote host `eval $(docker-machine env s2v-ya)`
 1. Build container as before. Notice: that it will be built on remote host using local source code.
