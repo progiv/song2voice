@@ -23,7 +23,7 @@ pip install -r requirements.txt
 ## Run the server
 Now we are ready to run the server:
 ```
-python manage.py runserver
+DJANGO_DATABASE=test python manage.py runserver
 ```
 
 ## Running locally in docker container for debug
@@ -35,9 +35,10 @@ python manage.py runserver
 1. The server is now accessible at <localhost:80>
 
 ## Deploy to Remote server
-Prerequisites: it is expected that you already have setup keypair connection to your remote server on `<ROMITE IP>` with private key stored at `<PATH TO PRIVATRE SSH KEY>`.
+Prerequisites: it is expected that you already have setup keypair connection to your remote server on `<ROMITE IP>` with private key stored at `<PATH TO PRIVATRE SSH KEY>`. `<PATH TO ENV FILE>` should contain secrets like `SECRET_KEY`, `DJANGO_DATABASE=main` `DB_PASWORD` and `DB_HOST`
 1. (Once)Setup docker environment on the remote machine. `docker-machine create --driver generic --generic-ip-address=<REMOTE IP> --generic-ssh-user=<REMOTE USERNAME> --generic-ssh-key <PATH TO PRIVATRE SSH KEY> s2v-ya`
 1. Configure docker to run commands on remote host `eval $(docker-machine env s2v-ya)`
 1. Build container as before. Notice: that it will be built on remote host using local source code.
-1. Run container in detached mode `docker run -dp 80:80 --name back song2voice`
+1. Kill running instance and delete its data `docker kill back && docker container rm back`
+1. Run new container in detached mode `docker run --env-file <PATH TO ENV FILE> -dp 80:80 --name back song2voice`
 1. Unset environment variables that were set up in step 2 `eval $(docker-machine env -u)`
