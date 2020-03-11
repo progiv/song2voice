@@ -74,6 +74,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'get_voice_server.wsgi.application'
 
+# Google Cloud
+
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = 'files_media'
+
+STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+
+GS_DEFAULT_ACL = 'publicRead'
+
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
