@@ -92,7 +92,7 @@ class Spleeter:
             
             for num in range(1, n_chunks):   
                 
-                path_to_chunk = f"{path_to_input}/chunk{num}/{music_type}.{self.music_format}"
+                path_to_chunk = f"{path_to_sup_dir}/chunk{num}/{music_type}.{self.music_format}"
                 sound = sound[:-self.overlap] + AudioSegment.from_file(path_to_chunk)
                 
             path_to_output = f"{path_to_music_dir}/{music_type}.{self.music_format}"
