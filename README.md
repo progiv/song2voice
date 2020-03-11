@@ -29,9 +29,9 @@ DJANGO_DATABASE=test python manage.py runserver
 ## Running locally in docker container for debug
 *Note: it is an alternative way of doing steps from above.*
 
-1. Install docker using [official guide](https://docs.docker.com/get-docker/)
+1. (Once) Install docker using [official guide](https://docs.docker.com/get-docker/)
 1. Build the image with name song2voice: `docker image build -t song2voice .`
-1. Run the container interactively: `docker run --rm -it -p 80:80 song2voice`
+1. Run the container interactively: `docker run -e DEBUG=True -e GOOGLE_APPLICATION_CREDENTIALS=get_voice.json --rm -it -p 80:80 song2voice`
 1. The server is now accessible at <localhost:80>
 
 ## Deploy to Remote server

@@ -7,5 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 80
 
-CMD python manage.py migrate && \
+CMD python manage.py makemigrations && \
+    python manage.py migrate && \
     gunicorn get_voice_server.wsgi:application --bind 0.0.0.0:80 --workers=4 --timeout=120
