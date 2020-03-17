@@ -5,7 +5,9 @@ django-cors-headers==3.2.1
 # postgres client
 psycopg2-binary==2.8.4
 
-django-storages[google]==1.9.1
+# storage(s3)
+django-storages==1.9.1
+boto3==1.12.22
 
 # for file type checking
 filetype==1.0.5

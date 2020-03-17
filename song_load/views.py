@@ -5,7 +5,7 @@ import hashlib
 from spleeter_model.inference import Spleeter
 from .models import ProcessedSong
 import filetype
-import tempfile
+from tempfile import TemporaryDirectory
 import pathlib
 from django.http import JsonResponse
 from http import HTTPStatus
@@ -89,7 +89,7 @@ def upload(request):
         return JsonResponse({'md5_of_song': md5_of_song})
 
     print("Processing ....")
-    with tempfile.TemporaryDirectory() as directory_name:
+    with TemporaryDirectory() as directory_name:
         the_dir = pathlib.Path(directory_name)
         the_dir_url = f'{the_dir}/'
         dir_fs = FileSystemStorage(location=the_dir, base_url=the_dir_url)
