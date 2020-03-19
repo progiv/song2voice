@@ -84,7 +84,6 @@ if os.getenv('AWS_ACCESS_KEY_ID'):
     AWS_S3_ENDPOINT_URL = f'https://{aws_s3_endpoint}'
     AWS_S3_CUSTOM_DOMAIN = f'{aws_s3_endpoint}/{AWS_STORAGE_BUCKET_NAME}'
     AWS_DEFAULT_ACL = 'public-read'  # Warning: unsafe, everyone can see anyone files
-    del aws_s3_endpoint
 # else local file storage
 
 # Database
