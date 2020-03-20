@@ -1,21 +1,14 @@
-# from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseServerError
-# from django.conf import settings
-from django.core.files.storage import FileSystemStorage
-from django.core.files.storage import default_storage
+from django.core.files.storage import FileSystemStorage, default_storage
 from django.views.decorators.csrf import csrf_exempt
 import datetime
 import hashlib
 from spleeter_model.inference import Spleeter
 from .models import ProcessedSong
 import filetype
-import tempfile
+from tempfile import TemporaryDirectory
 import pathlib
 from django.http import JsonResponse
 from http import HTTPStatus
-from get_voice_server.settings import GS_BUCKET_NAME
-
-from google.cloud import storage
 
 global_model = None
 
@@ -57,7 +50,7 @@ def is_used_hash(test_hash_code):
     return ProcessedSong.objects.filter(pk=test_hash_code).exists()
 
 def download(request):
-    if not is_download_request:
+    if not is_download_request(request):
         return JsonResponse(status=HTTPStatus.BAD_REQUEST,
                             data={'message': 'Incorrect request format'})
 
@@ -68,12 +61,9 @@ def download(request):
     return JsonResponse({'vocal_url': ProcessedSong.objects.get(pk=cur_hash).vocal_url})
 
 def blob_exists(filename):  
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(GS_BUCKET_NAME)
-    exist = storage.Blob(bucket=bucket, name=filename).exists(storage_client)
-    return exist
+    return default_storage.exists(filename)
 
-def is_in_google_storage(md5_of_song):
+def is_in_storage(md5_of_song):
     file_names = [f'{md5_of_song}.wav', f'{md5_of_song}_vocal.wav', f'{md5_of_song}_accompaniment.wav']
     exist = True
     for fn in file_names:
@@ -92,14 +82,14 @@ def upload(request):
     md5_of_song = get_md5(input_song)
     print("====================This hash: ", md5_of_song)
     used_hash = is_used_hash(md5_of_song)
-    in_google_storage = is_in_google_storage(md5_of_song)
+    in_storage = is_in_storage(md5_of_song)
     print("====================Is used hash: ", used_hash)
-    print("====================Is in google storage: ", in_google_storage)
-    if used_hash and in_google_storage:
+    print("====================Is in S3 storage: ", in_storage)
+    if used_hash and in_storage:
         return JsonResponse({'md5_of_song': md5_of_song})
 
     print("Processing ....")
-    with tempfile.TemporaryDirectory() as directory_name:
+    with TemporaryDirectory() as directory_name:
         the_dir = pathlib.Path(directory_name)
         the_dir_url = f'{the_dir}/'
         dir_fs = FileSystemStorage(location=the_dir, base_url=the_dir_url)

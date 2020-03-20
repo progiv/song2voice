@@ -20,10 +20,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", "Dummy SECRET_KEY don't forget to change it in env")
+SECRET_KEY = os.getenv("SECRET_KEY", "Dummy SECRET_KEY don't forget to change it in env")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", "False") == "True"  # will set DEBUG to True only if we explicitly set it in env
+DEBUG = os.getenv("DEBUG", "False") == "True"  # will set DEBUG to True only if we explicitly set it in env
 
 ALLOWED_HOSTS = ['*']
 
@@ -74,15 +74,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'get_voice_server.wsgi.application'
 
-# Google Cloud
-
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_BUCKET_NAME = 'files_media'
-
-STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-
-GS_DEFAULT_ACL = 'publicRead'
-
+if os.getenv('AWS_ACCESS_KEY_ID'):
+    print("Using Amazon-like S3")
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+    aws_s3_endpoint = os.getenv('AWS_S3_ENDPOINT')
+    AWS_S3_ENDPOINT_URL = f'https://{aws_s3_endpoint}'
+    AWS_S3_CUSTOM_DOMAIN = f'{aws_s3_endpoint}/{AWS_STORAGE_BUCKET_NAME}'
+    AWS_DEFAULT_ACL = 'public-read'  # Warning: unsafe, everyone can see anyone files
+# else local file storage
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -90,18 +92,18 @@ GS_DEFAULT_ACL = 'publicRead'
 DATABASES = {
     'main': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ.get('DB_HOST', "localhost"),
-        'PORT': os.environ.get('DB_PORT', 5432),
-        'NAME': os.environ.get('DB_NAME', 'postgres'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', "password")
+        'HOST': os.getenv('DB_HOST', "localhost"),
+        'PORT': os.getenv('DB_PORT', 5432),
+        'NAME': os.getenv('DB_NAME', 'postgres'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', "password")
     },
     'test': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-database = os.environ.get("DJANGO_DATABASE", "test")
+database = os.getenv("DJANGO_DATABASE", "test")
 DATABASES['default'] = DATABASES[database]
 
 
