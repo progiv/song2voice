@@ -13,7 +13,7 @@ class AccessLogsModel(models.Model):
     response_status = models.CharField(max_length=8, null=False, blank=True)
     response_timestamp = models.DateTimeField(null=False, blank=True)
 
-    processed_time = models.CharField(max_length=8, null=False, blank=True)
+    processed_time = models.DurationField(null=False, blank=True)
     
     def __str__(self):
         obj_dict = vars(self)

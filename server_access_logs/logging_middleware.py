@@ -53,7 +53,7 @@ class AccessLogsMiddleware(object):
         # save response
         self.access_logs_data["response_status"] = response.status_code
         self.access_logs_data["response_timestamp"] = timezone.now()
-        self.access_logs_data["processed_time"] = str(self.access_logs_data["response_timestamp"] - self.access_logs_data["request_timestamp"])
+        self.access_logs_data["processed_time"] = self.access_logs_data["response_timestamp"] - self.access_logs_data["request_timestamp"]
 
         model = AccessLogsModel.objects.create(**self.access_logs_data)
         self.logger.info(model)
