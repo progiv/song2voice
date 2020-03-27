@@ -1,9 +1,16 @@
 import os
+import logging
 import tempfile
+import warnings
+#disabling FutureWarnings at the initialization
+warnings.filterwarnings('ignore', category=FutureWarning)
+
 from pydub import AudioSegment
 from spleeter.separator import Separator
+#disabling tensorflow logs at the inference
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
 
-__author__ = "Kirill Talalaev"
+logger = logging.getLogger('default')
 
 class Spleeter:
     """
@@ -15,7 +22,7 @@ class Spleeter:
         """
         Args:
             max_duration (int): maximum duration of one music chunk in seconds
-            overlap (int): overlap for music chunkparts in seconds
+            overlap (int): overlap for music chunks in seconds
             music_format (str): music saving format ('mp3', 'wav', 'raw', 'ogg')
             music_types (list[str]): music saving types ('vocals' for voice, 'accompaniment' for music)
             sup_dir (str): support directory which will be created at the beginning and removed at the end
@@ -27,8 +34,9 @@ class Spleeter:
         self.music_types = music_types
         self.music_format = music_format
         
-        self.separator = Separator('spleeter:2stems')
- 
+        self.separator = Separator('spleeter:2stems')  
+        logger.info('Initialization is finished successfully')
+        
 
     def predict(self, path_to_input, path_to_output):
         """
@@ -47,16 +55,21 @@ class Spleeter:
         if music_dir not in os.listdir(path_to_output):
             os.mkdir(path_to_music_dir)
         
-        with tempfile.TemporaryDirectory() as path_to_sup_dir:            
+        with tempfile.TemporaryDirectory() as path_to_sup_dir:
 
-            sound = AudioSegment.from_file(path_to_input)
+            sound = AudioSegment.from_file(path_to_input)                
+            logger.info('Audio file was loaded successfully')
 
-            n_chunks = self._separate_audio(sound, path_to_sup_dir)
+            n_chunks = self._separate_audio(sound, path_to_sup_dir)            
+            logger.info('Audio file was divided into chunks successfully')
 
-            self._predict_audio_chunks(n_chunks, path_to_sup_dir)         
-
+            self._predict_audio_chunks(n_chunks, path_to_sup_dir)
+            logger.info('Vocal was extracted from each chunk successfully')
+            
             self._join_audio(n_chunks, path_to_sup_dir, path_to_music_dir)
-
+            logger.info('All chunks were joined into one audio file successfully')
+            
+        logger.info('Vocal extraction was finished successfully')
  
 
     def _separate_audio(self, sound, path_to_sup_dir):

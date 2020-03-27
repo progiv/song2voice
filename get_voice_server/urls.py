@@ -22,5 +22,4 @@ from . import veiws
 urlpatterns = [
     path('song_load/', include('song_load.urls')),
     path('check/', veiws.check),
-    path('admin/', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
