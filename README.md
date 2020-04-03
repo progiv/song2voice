@@ -44,7 +44,7 @@ Prerequisites: it is expected that you already have setup keypair connection to 
 1. Unset environment variables that were set up in step 2 `eval $(docker-machine env -u)`
 
 ### List of environment variables in use [settings.py](get_voice_server/settings.py)
-The values for secrets ones are stored in [CI/CD settings](https://gitlab.com/hse-how-to-make-a-startup/projects/vocal-extractor-song-2-voice/song-to-voice-backend/-/settings/ci_cd) -> Variables with `K8S_SECRET_` prefix.
+The values for secrets ones are stored in [CI/CD settings](https://gitlab.com/hse-how-to-make-a-startup/projects/vocal-extractor-song-2-voice/song-to-voice-backend/-/settings/ci_cd) -> Variables.
 * `SECRET_KEY` - django secret key
 * `DEBUG` use `True` to see descriptive error messages
 

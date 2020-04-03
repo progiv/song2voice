@@ -1,0 +1,82 @@
+# Сообщаем Gitlab CI, что мы будем использовать Docker при сборке.
+image: docker:latest
+#image: docker:19.03.1
+
+# Описываем, из каких ступеней будет состоять наша непрерывная интеграция:
+# - сборка Docker-образа,
+# - прогон тестов Django,
+# - выкат на боевой сервер.
+stages:
+  - build
+  - test
+  - deploy
+
+# Описываем инициализационные команды, которые необходимо запускать
+# перед запуском каждой ступени.
+# Изменения, внесённые на каждой ступени, не переносятся на другие, так как запуск
+# ступеней осуществляется в чистом Docker-контейнере, который пересоздаётся каждый раз.
+before_script:
+  - docker info
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD registry.gitlab.com/hse-how-to-make-a-startup/projects/vocal-extractor-song-2-voice/song-to-voice-backend
+
+# Сборка Docker-образа
+build:
+  stage: build
+  # shared-runners отключены, поэтому тэги не нужны
+  # tags:
+  #    - docker,production
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:latest || true
+    - docker build -t song2voice --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    # push built container to registry
+    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+# Show some non-sensitive environment variables
+show_env:
+  stage: build
+  script:
+    - echo DEBUG=$DEBUG
+    - echo DJANGO_DATABASE=$DJANGO_DATABASE
+    - echo DB_HOST=$DB_HOST
+    - echo CI_REGISTRY=$CI_REGISTRY
+
+# Прогон тестов
+test:
+  stage: test
+  script:
+    # вместо повторной сборки, забираем собранный на предыдущей ступени
+    # готовый образ из registry
+    - docker pull $CI_REGISTRY_IMAGE:latest
+    # запускаем тесты
+    - docker run -e DEBUG=True --rm $CI_REGISTRY_IMAGE:latest python manage.py test
+
+# Запуск в Staging
+deploy_staging:
+  stage: deploy
+  environment:
+    name: Staging
+  variables:
+    CONTAINER: back_staging
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:latest
+    - docker stop $CONTAINER || true
+    - docker rm $CONTAINER || true
+    - docker run --env-file $ENV_LIST -dp 8000:80 --name $CONTAINER $CI_REGISTRY_IMAGE:latest
+
+# Обновление продакшн
+deploy_production:
+  stage: deploy
+  # Запускать только по кнопке. Сначала убедись, что Staging корректно работает.
+  when: manual
+  only:
+    - master
+  environment:
+    name: Production
+  variables:
+    CONTAINER: back
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:latest
+    - docker stop $CONTAINER || true
+    - docker rm $CONTAINER || true
+    - docker run --env-file $ENV_LIST_PROD -dp 80:80 --name $CONTAINER $CI_REGISTRY_IMAGE:latest
