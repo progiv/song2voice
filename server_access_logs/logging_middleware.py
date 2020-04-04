@@ -39,7 +39,8 @@ class AccessLogsMiddleware(object):
 
         data = dict()
         data["get"] = dict(request.GET.copy())
-        data['post'] = dict(request.POST.copy())
+        data["post"] = dict(request.POST.copy())
+        data["files"] = dict(request.FILES.copy())
 
         # remove password form post data for security reasons
         keys_to_remove = ["password", "csrfmiddlewaretoken"]
