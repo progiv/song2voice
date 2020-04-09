@@ -11,13 +11,17 @@ stages:
   - test
   - deploy
 
+variables:
+  # Последний собранный образ из тех что есть в registry
+  LATEST: "$CI_REGISTRY_IMAGE:latest"
+
 # Описываем инициализационные команды, которые необходимо запускать
 # перед запуском каждой ступени.
 # Изменения, внесённые на каждой ступени, не переносятся на другие, так как запуск
 # ступеней осуществляется в чистом Docker-контейнере, который пересоздаётся каждый раз.
 before_script:
   - docker info
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD registry.gitlab.com/hse-how-to-make-a-startup/projects/vocal-extractor-song-2-voice/song-to-voice-backend
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 # Сборка Docker-образа
 build:
@@ -27,7 +31,7 @@ build:
   #    - docker,production
   script:
     - docker pull $CI_REGISTRY_IMAGE:latest || true
-    - docker build -t song2voice --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker build -t song2voice --cache-from $LATEST --tag $LATEST --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
     # push built container to registry
     - docker push $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
@@ -49,7 +53,7 @@ test:
     # готовый образ из registry
     - docker pull $CI_REGISTRY_IMAGE:latest
     # запускаем тесты
-    - docker run -e DEBUG=True --rm $CI_REGISTRY_IMAGE:latest python manage.py test
+    - docker run -e DEBUG=True --rm $LATEST python manage.py test
 
 # Запуск в Staging
 deploy_staging:
@@ -59,10 +63,10 @@ deploy_staging:
   variables:
     CONTAINER: back_staging
   script:
-    - docker pull $CI_REGISTRY_IMAGE:latest
+    - docker pull $LATEST
     - docker stop $CONTAINER || true
     - docker rm $CONTAINER || true
-    - docker run --env-file $ENV_LIST -dp 8000:80 --name $CONTAINER $CI_REGISTRY_IMAGE:latest
+    - docker run --env-file $ENV_LIST -dp 8000:80 --name $CONTAINER $LATEST
 
 # Обновление продакшн
 deploy_production:
@@ -76,7 +80,7 @@ deploy_production:
   variables:
     CONTAINER: back
   script:
-    - docker pull $CI_REGISTRY_IMAGE:latest
+    - docker pull $LATEST
     - docker stop $CONTAINER || true
     - docker rm $CONTAINER || true
-    - docker run --env-file $ENV_LIST_PROD -dp 80:80 --name $CONTAINER $CI_REGISTRY_IMAGE:latest
+    - docker run --env-file $ENV_LIST_PROD -dp 80:80 --name $CONTAINER $LATEST
