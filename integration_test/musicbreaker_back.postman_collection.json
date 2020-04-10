@@ -1,0 +1,190 @@
+{
+	"info": {
+		"name": "musicbreaker back",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"url": {
+					"raw": "{{schema}}://{{host}}/check/",
+					"protocol": "{{schema}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"check",
+						""
+					]
+				}
+			}
+		},
+		{
+			"name": "song_load/upload",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Correct hash\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.md5_of_song).to.eql(pm.variables.get(\"hash\"));",
+							"});",
+							"pm.test(\"Content-Type is present\", function () {",
+							"    pm.response.to.have.header(\"Content-Type\");",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "song",
+							"type": "file",
+							"src": "shes-a-crazy-psycho-2.wav"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{schema}}://{{host}}/song_load/upload",
+					"protocol": "{{schema}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"song_load",
+						"upload"
+					]
+				}
+			}
+		},
+		{
+			"name": "song_load/download",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Has vocal link\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.has.keys([\"vocal_url\"]);",
+							"    ",
+							"});",
+							"pm.test(\"Vocal link is valid\", function () {",
+							"    var pat = /^https?:\\/\\//i,",
+							"        vocal_url = pm.response.json().vocal_url;",
+							"    if (pat.test(vocal_url))",
+							"    {",
+							"        // external link",
+							"        pm.environment.set(\"vocal_url\", vocal_url);",
+							"    }",
+							"    else {",
+							"        // relative link",
+							"        var host_with_schema = pm.variables.get(\"schema\") + '://' + pm.variables.get(\"host\");",
+							"        console.log(host_with_schema + vocal_url);",
+							"        pm.environment.set(\"vocal_url\", host_with_schema + vocal_url);",
+							"    }",
+							"    ",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"url": {
+					"raw": "{{schema}}://{{host}}/song_load/download?hash={{hash}}",
+					"protocol": "{{schema}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"song_load",
+						"download"
+					],
+					"query": [
+						{
+							"key": "hash",
+							"value": "{{hash}}"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "vocal_url",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Content-Type is audio/x-wav\", function () {",
+							"    pm.response.to.have.header(\"Content-Type\", \"audio/x-wav\");",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"url": {
+					"raw": "{{vocal_url}}",
+					"host": [
+						"{{vocal_url}}"
+					]
+				}
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "localhost:80",
+			"type": "string"
+		},
+		{
+			"key": "hash",
+			"value": "4addb0dbd29f8d759658a24e381f276a",
+			"type": "string"
+		},
+		{
+			"key": "schema",
+			"value": "http",
+			"type": "string"
+		}
+	]
+}

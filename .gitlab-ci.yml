@@ -9,11 +9,14 @@ image: docker:latest
 stages:
   - build
   - test
-  - deploy
+  - deploy_staging
+  - integration_staging
+  - deploy_production
+  - integration_production
 
 variables:
   # Последний собранный образ из тех что есть в registry
-  LATEST: "$CI_REGISTRY_IMAGE:latest"
+  LATEST: ${CI_REGISTRY_IMAGE}:latest
 
 # Описываем инициализационные команды, которые необходимо запускать
 # перед запуском каждой ступени.
@@ -30,10 +33,10 @@ build:
   # tags:
   #    - docker,production
   script:
-    - docker pull $CI_REGISTRY_IMAGE:latest || true
+    - docker pull $LATEST || true
     - docker build -t song2voice --cache-from $LATEST --tag $LATEST --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
     # push built container to registry
-    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker push $LATEST
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
 # Show some non-sensitive environment variables
@@ -51,26 +54,32 @@ test:
   script:
     # вместо повторной сборки, забираем собранный на предыдущей ступени
     # готовый образ из registry
-    - docker pull $CI_REGISTRY_IMAGE:latest
+    - docker pull $LATEST
     # запускаем тесты
     - docker run -e DEBUG=True --rm $LATEST python manage.py test
 
-# Запуск в Staging
-deploy_staging:
-  stage: deploy
-  environment:
-    name: Staging
-  variables:
-    CONTAINER: back_staging
+.deploy:
   script:
     - docker pull $LATEST
     - docker stop $CONTAINER || true
     - docker rm $CONTAINER || true
-    - docker run --env-file $ENV_LIST -dp 8000:80 --name $CONTAINER $LATEST
+    - docker run --env-file $ENV_LIST -dp $PORT:80 --name $CONTAINER $LATEST
+
+
+# Запуск в Staging
+deploy_staging:
+  extends: .deploy
+  stage: deploy_staging
+  environment:
+    name: Staging
+  variables:
+    CONTAINER: back_staging
+    PORT: 8000
 
 # Обновление продакшн
 deploy_production:
-  stage: deploy
+  stage: deploy_production
+  extends: .deploy
   # Запускать только по кнопке. Сначала убедись, что Staging корректно работает.
   when: manual
   only:
@@ -79,8 +88,31 @@ deploy_production:
     name: Production
   variables:
     CONTAINER: back
+    PORT: 80
+
+# TODO: disable before_script for these steps
+.integration_test:
+  variables:
+    folder: integration_test
+    environment_json: ${folder}/${environment_name}.postman_environment.json
+    collection: ${folder}/musicbreaker_back.postman_collection.json
   script:
-    - docker pull $LATEST
-    - docker stop $CONTAINER || true
-    - docker rm $CONTAINER || true
-    - docker run --env-file $ENV_LIST_PROD -dp 80:80 --name $CONTAINER $LATEST
+    - apk add --update npm
+    - npm install -g newman
+    - newman run --working-dir=$folder --verbose -e $environment_json $collection
+
+integration_test_staging:
+  stage: integration_staging
+  extends: .integration_test
+  variables:
+    environment_name: staging
+  needs: [deploy_staging]
+
+integration_test_production:
+  stage: integration_production
+  extends: .integration_test
+  variables:
+    environment_name: api.musicbreaker.us
+  only:
+    - master
+  needs: [deploy_production]
