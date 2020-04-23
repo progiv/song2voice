@@ -17,6 +17,8 @@ stages:
 variables:
   # Последний собранный образ из тех что есть в registry
   LATEST: ${CI_REGISTRY_IMAGE}:latest
+  # Образ соответствующий этому коммиту
+  THIS: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
 # Описываем инициализационные команды, которые необходимо запускать
 # перед запуском каждой ступени.
@@ -34,10 +36,10 @@ build:
   #    - docker,production
   script:
     - docker pull $LATEST || true
-    - docker build -t song2voice --cache-from $LATEST --tag $LATEST --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker build -t song2voice --cache-from $LATEST --tag $LATEST --tag $THIS .
     # push built container to registry
     - docker push $LATEST
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker push $THIS
 
 # Show some non-sensitive environment variables
 show_env:
@@ -54,16 +56,19 @@ test:
   script:
     # вместо повторной сборки, забираем собранный на предыдущей ступени
     # готовый образ из registry
-    - docker pull $LATEST
+    - docker pull $THIS
     # запускаем тесты
-    - docker run -e DEBUG=True --rm $LATEST python manage.py test
+    - docker run -e DEBUG=True --rm $THIS python manage.py test
 
 .deploy:
   script:
-    - docker pull $LATEST
+    - docker pull $THIS
     - docker stop $CONTAINER || true
     - docker rm $CONTAINER || true
-    - docker run --env-file $ENV_LIST -dp $PORT:80 --name $CONTAINER $LATEST
+    - docker run --env-file $ENV_LIST -dp $PORT:80 --name $CONTAINER $THIS
+    # remember which container was run last for this environment
+    - docker tag $THIS $CI_REGISTRY_IMAGE:$CONTAINER
+    - docker push $CI_REGISTRY_IMAGE:$CONTAINER
 
 
 # Запуск в Staging
