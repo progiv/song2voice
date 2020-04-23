@@ -73,9 +73,10 @@ def download(request):
         return JsonResponse(status=HTTPStatus.NO_CONTENT,
                             data={'message': 'Hash code not found'})
     logger.info('====================Return vocal...')
+    song = ProcessedSong.objects.get(pk=cur_hash)
     return JsonResponse({
-        'vocal_url': ProcessedSong.objects.get(pk=cur_hash).vocal_url,
-        'accompaniment_url': ProcessedSong.objects.get(pk=cur_hash).accompaniment_url
+        'vocal_url': song.vocal_url,
+        'accompaniment_url': song.accompaniment_url
         })
 
 def blob_exists(filename):  
