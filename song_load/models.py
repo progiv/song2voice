@@ -1,6 +1,6 @@
 from django.db import models
 
-# Create your models here.
+
 class ProcessedSong(models.Model):
     hash_code = models.CharField(max_length=32, primary_key=True)
     pub_date = models.DateTimeField('date loaded')

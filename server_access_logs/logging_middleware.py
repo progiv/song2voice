@@ -1,9 +1,11 @@
-from .models import AccessLogsModel
-from django.conf import settings
-from django.utils import timezone
-from http import HTTPStatus
-from django.http import JsonResponse
 import logging
+from http import HTTPStatus
+
+from django.http import JsonResponse
+from django.utils import timezone
+
+from .models import AccessLogsModel
+
 
 class AccessLogsMiddleware(object):
 
@@ -25,16 +27,17 @@ class AccessLogsMiddleware(object):
 
         self.process_response(request, response)
         return response
-    
+
     def process_request(self, request):
         # get the request path
         self.access_logs_data["request_path"] = request.path
 
         # get the client's IP address
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        self.access_logs_data["request_ip_address"] = x_forwarded_for.split(',')[0] if x_forwarded_for else request.META.get('REMOTE_ADDR')
+        self.access_logs_data["request_ip_address"] = x_forwarded_for.split(',')[
+            0] if x_forwarded_for else request.META.get('REMOTE_ADDR')
         self.access_logs_data["request_method"] = request.method
-        self.access_logs_data["request_referrer"] = request.META.get('HTTP_REFERER',None)
+        self.access_logs_data["request_referrer"] = request.META.get('HTTP_REFERER', None)
         self.access_logs_data["session_key"] = request.session.session_key
 
         data = dict()
@@ -54,12 +57,12 @@ class AccessLogsMiddleware(object):
         # save response
         self.access_logs_data["response_status"] = response.status_code
         self.access_logs_data["response_timestamp"] = timezone.now()
-        self.access_logs_data["processed_time"] = self.access_logs_data["response_timestamp"] - self.access_logs_data["request_timestamp"]
+        self.access_logs_data["processed_time"] = self.access_logs_data["response_timestamp"] - self.access_logs_data[
+            "request_timestamp"]
 
         model = AccessLogsModel.objects.create(**self.access_logs_data)
         self.logger.info(model)
         self.logger.info('==================================================================')
-
 
     def process_exception(self, request, exception):
         self.logger.exception('xxxxxxxx get_response fails in middleware xxxxxxxx')

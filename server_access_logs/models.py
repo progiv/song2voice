@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class AccessLogsModel(models.Model):
     sys_id = models.AutoField(primary_key=True, null=False, blank=True)
     session_key = models.CharField(max_length=1024, null=False, blank=True)
@@ -14,7 +15,7 @@ class AccessLogsModel(models.Model):
     response_timestamp = models.DateTimeField(null=False, blank=True)
 
     processed_time = models.DurationField(null=False, blank=True)
-    
+
     def __str__(self):
         obj_dict = vars(self)
         if "_state" in obj_dict:
