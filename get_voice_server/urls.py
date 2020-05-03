@@ -17,9 +17,10 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
-from . import veiws
+from . import views
 
 urlpatterns = [
     path('song_load/', include('song_load.urls')),
-    path('check/', veiws.check),
+    path('check/', views.check),
+    path('sentry-debug/', views.trigger_error),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
