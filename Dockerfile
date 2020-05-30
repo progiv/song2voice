@@ -8,4 +8,4 @@ COPY . .
 EXPOSE 80
 
 CMD python manage.py migrate && \
-    gunicorn get_voice_server.wsgi:application --bind 0.0.0.0:80 --workers=4 --timeout=300 --access-logfile=-
+    gunicorn get_voice_server.wsgi:application --bind 0.0.0.0:80 --workers=2 --timeout=300 --access-logfile=-
